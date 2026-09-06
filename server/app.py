@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from flask import request, session, jsonify
+from flask import request, session
 from flask_restful import Resource
 
 from config import app, db, api
@@ -47,8 +47,10 @@ class Login(Resource):
 
 class Logout(Resource):
     def delete(self):
-        session['user_id'] = None
-        return {}, 204
+        if session.get('user_id'):
+            session['user_id'] = None
+            return {}, 204
+        return {'error': 'Unauthorized'}, 401
 
 
 class RecipeIndex(Resource):
