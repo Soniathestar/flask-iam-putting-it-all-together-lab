@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from random_object_id import generate
 from faker import Faker
 import random
 
