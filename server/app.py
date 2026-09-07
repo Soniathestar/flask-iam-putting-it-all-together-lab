@@ -4,7 +4,11 @@ from flask import request, session
 from flask_restful import Resource
 
 from config import app, db, api
-from models import User, Recipe
+from models import User, Recipe, UserSchema, RecipeSchema
+
+user_schema = UserSchema()
+recipe_schema = RecipeSchema()
+recipes_schema = RecipeSchema(many=True)
 
 
 class Signup(Resource):
@@ -21,7 +25,7 @@ class Signup(Resource):
             db.session.add(user)
             db.session.commit()
             session['user_id'] = user.id
-            return user.to_dict(), 201
+            return user_schema.dump(user), 201
         except Exception as e:
             db.session.rollback()
             return {'error': str(e)}, 422
@@ -32,7 +36,7 @@ class CheckSession(Resource):
         user_id = session.get('user_id')
         if user_id:
             user = User.query.filter(User.id == user_id).first()
-            return user.to_dict(), 200
+            return user_schema.dump(user), 200
         return {'error': 'Unauthorized'}, 401
 
 
@@ -42,7 +46,7 @@ class Login(Resource):
         user = User.query.filter(User.username == json.get('username')).first()
         if user and user.authenticate(json.get('password')):
             session['user_id'] = user.id
-            return user.to_dict(), 200
+            return user_schema.dump(user), 200
         return {'error': 'Invalid username or password'}, 401
 
 
@@ -59,8 +63,8 @@ class RecipeIndex(Resource):
         user_id = session.get('user_id')
         if not user_id:
             return {'error': 'Unauthorized'}, 401
-        recipes = [recipe.to_dict() for recipe in Recipe.query.filter_by(user_id=user_id).all()]
-        return recipes, 200
+        recipes = Recipe.query.filter_by(user_id=user_id).all()
+        return recipes_schema.dump(recipes), 200
 
     def post(self):
         user_id = session.get('user_id')
@@ -77,7 +81,7 @@ class RecipeIndex(Resource):
             )
             db.session.add(recipe)
             db.session.commit()
-            return recipe.to_dict(), 201
+            return recipe_schema.dump(recipe), 201
         except Exception as e:
             db.session.rollback()
             return {'error': str(e)}, 422
