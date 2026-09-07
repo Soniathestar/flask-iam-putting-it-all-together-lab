@@ -10,19 +10,20 @@ from models import User, Recipe
 class Signup(Resource):
     def post(self):
         json = request.get_json()
-        user = User(
-            username=json.get('username'),
-            image_url=json.get('image_url'),
-            bio=json.get('bio'),
-        )
-        user.password_hash = json.get('password')
-
         try:
+            user = User(
+                username=json.get('username'),
+                image_url=json.get('image_url'),
+                bio=json.get('bio'),
+            )
+            user.password_hash = json.get('password')
+
             db.session.add(user)
             db.session.commit()
             session['user_id'] = user.id
             return user.to_dict(), 201
         except Exception as e:
+            db.session.rollback()
             return {'error': str(e)}, 422
 
 
@@ -78,6 +79,7 @@ class RecipeIndex(Resource):
             db.session.commit()
             return recipe.to_dict(), 201
         except Exception as e:
+            db.session.rollback()
             return {'error': str(e)}, 422
 
 
