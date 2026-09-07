@@ -59,7 +59,7 @@ class RecipeIndex(Resource):
         user_id = session.get('user_id')
         if not user_id:
             return {'error': 'Unauthorized'}, 401
-        recipes = [recipe.to_dict() for recipe in Recipe.query.all()]
+        recipes = [recipe.to_dict() for recipe in Recipe.query.filter_by(user_id=user_id).all()]
         return recipes, 200
 
     def post(self):
@@ -78,16 +78,4 @@ class RecipeIndex(Resource):
             db.session.add(recipe)
             db.session.commit()
             return recipe.to_dict(), 201
-        except Exception as e:
-            db.session.rollback()
-            return {'error': str(e)}, 422
-
-
-api.add_resource(Signup, '/signup', endpoint='signup')
-api.add_resource(CheckSession, '/check_session', endpoint='check_session')
-api.add_resource(Login, '/login', endpoint='login')
-api.add_resource(Logout, '/logout', endpoint='logout')
-api.add_resource(RecipeIndex, '/recipes', endpoint='recipes')
-
-if __name__ == '__main__':
-    app.run(port=5555, debug=True)
+        except
