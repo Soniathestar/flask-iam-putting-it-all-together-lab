@@ -1,14 +1,12 @@
 from sqlalchemy.orm import validates
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy_serializer import SerializerMixin
+from marshmallow import Schema, fields
 
 from config import db, bcrypt
 
 
-class User(db.Model, SerializerMixin):
+class User(db.Model):
     __tablename__ = 'users'
-
-    serialize_rules = ('-recipes.user', '-_password_hash',)
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String, unique=True, nullable=False)
@@ -42,10 +40,8 @@ class User(db.Model, SerializerMixin):
         return f'<User {self.username}>'
 
 
-class Recipe(db.Model, SerializerMixin):
+class Recipe(db.Model):
     __tablename__ = 'recipes'
-
-    serialize_rules = ('-user.recipes',)
 
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String, nullable=False)
@@ -64,3 +60,18 @@ class Recipe(db.Model, SerializerMixin):
 
     def __repr__(self):
         return f'<Recipe {self.title}>'
+
+
+class UserSchema(Schema):
+    id = fields.Integer()
+    username = fields.String()
+    image_url = fields.String()
+    bio = fields.String()
+
+
+class RecipeSchema(Schema):
+    id = fields.Integer()
+    title = fields.String()
+    instructions = fields.String()
+    minutes_to_complete = fields.Integer()
+    user = fields.Nested(UserSchema)
